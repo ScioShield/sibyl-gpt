@@ -42,7 +42,7 @@ An Elastic instance with **open** alerts. I have a provisioning [script](https:/
 
 Review the data that will be sent to OpenAI with the `--debug` flag first. You will be sending internal hostnames and IP addresses to an external third party. Without pseudonymization this will almost certainly contravene your companies security policy!  
 
-I would strongly advise to spin up a test cluster first! Wouldn't want to `rm -rf /` prod, unless you want to wake up on a Monday morning!  
+I would strongly advise to spin up a test cluster first! Wouldn't want to `rm -rf /` prod, unless you really want to wake up on a Monday morning!  
 
 Sending large amounts of data to OpenAI can be quite costly especially for the GPT-4 model, hence the save to file feature.  
 
@@ -91,7 +91,7 @@ python3 sibyl-gpt.py
 - Think about a pseudonymization function to send OpenAI fake IP and hostnames, then reverse the process locally before being displayed to the user (the description in the hint makes this a bit more complex)  
 - Unit tests  
 - Snyk monitoring  
-- Debug mode should also show what endpoints the script is connecting to e.g. `Connecting to: https://atomicfirefly5601`  
+- Debug mode should also show what endpoints the script is connecting to e.g. `Connecting to: https://atomicfirefly:5601`  
 - Think about LangChain and how to integrate this system with a "long term memory" vector database like Pinecone or Elastic's vector store (so the whole returned alert can be stored not just the small subsection we send to OpenAI), this way if an alert has been raised before can use that result as an example (more broadly not all items *need* to be sent to the OpenAI's API so a smart way of filtering it will save a lot of $$$)  
 - Maybe have a way to chose what type of data to send to OpenAI (So can be only alert related, alert and host related, alert and exact process related, etc.)  
 - Generalizing the script to work with other SIEMs like Splunk  
