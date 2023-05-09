@@ -39,17 +39,6 @@ def generate_unique_filename(model, extension="txt"):
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     return f"openai_output_{model}_{timestamp}.{extension}"
 
-def dummy_call_openai_api(prompt, event, model, session):
-    print("Dummy OpenAI API request:")
-    print(f"Model: {model}")
-    print(f"Messages: {prompt}\n{event}")
-
-    # Update session with input and output (for debug mode)
-    debug_summary = "Debug mode: Skipping API call"
-    session.add_input_output(model, prompt, event, debug_summary)
-
-    return debug_summary
-
 def extract_fields(nested_dict, fields, prefix=""):
     new_dict = {}
     for key, value in nested_dict.items():
@@ -201,6 +190,17 @@ def call_openai_api(prompt, event, debug, model, session):
     session.add_input_output(model, prompt, event, summary)
 
     return summary
+
+def dummy_call_openai_api(prompt, event, model, session):
+    print("Dummy OpenAI API request:")
+    print(f"Model: {model}")
+    print(f"Messages: {prompt}\n{event}")
+
+    # Update session with input and output (for debug mode)
+    debug_summary = "Debug mode: Skipping API call"
+    session.add_input_output(model, prompt, event, debug_summary)
+
+    return debug_summary
 
 def process_prompts(chosen_filtered_alert, debug, model, session):
     
