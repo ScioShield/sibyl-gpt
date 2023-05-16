@@ -82,16 +82,17 @@ python3 sibyl-gpt.py
 
 ## Improvements and future work
 
+- Update the demos to include new features
 - The rich rendering markdown isn't perfect  
 - Think about a time window (as in look at alerts in the past day, week, month, etc not just all time)  
-- Update the cost estimate function to also catch hint calls to be added to the total  
-- ~~Think about adding a "session" feature so it makes the costing (I'm still not happy about where the costing is displayed) and saving functions much better.~~ Working better still not perfect   
+- ~~Update the cost estimate function to also catch hint calls to be added to the total~~ Working as expected  
+- ~~Think about adding a "session" feature so it makes the costing (I'm still not happy about where the costing is displayed) and saving functions much better.~~ ~~Working better still not perfect~~ Working as expected  
 - Get a way for it to work with an Elastic API key (So remove user/pass)  
 - Think about a way to open a case in Elastic with all the details filled in  
 - Think about a pseudonymization function to send OpenAI fake IP and hostnames, then reverse the process locally before being displayed to the user (the description in the hint makes this a bit more complex)  
 - Unit tests  
 - Snyk monitoring  
-- Debug mode should also show what endpoints the script is connecting to e.g. `Connecting to: https://atomicfirefly:5601`  
+- ~~Debug mode should also show what endpoints the script is connecting to e.g. `Connecting to: atomicfirefly:5601`~~ Working as expected  
 - Think about LangChain and how to integrate this system with a "long term memory" vector database like Pinecone or Elastic's vector store (so the whole returned alert can be stored not just the small subsection we send to OpenAI), this way if an alert has been raised before can use that result as an example (more broadly not all items *need* to be sent to the OpenAI's API so a smart way of filtering it will save a lot of $$$)  
 - Maybe have a way to chose what type of data to send to OpenAI (So can be only alert related, alert and host related, alert and exact process related, etc.)  
 - Generalizing the script to work with other SIEMs like Splunk  

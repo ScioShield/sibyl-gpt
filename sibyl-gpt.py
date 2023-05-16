@@ -22,11 +22,13 @@ def parse_arguments():
 class Session:
     def __init__(self):
         self.data = ""
+        self.total_cost = 0  # Tracks total cost of API calls
 
-    def add_input_output(self, model, prompt, event, summary):
+    def add_input_output(self, model, prompt, event, summary, cost):
         self.data += f"\nModel: {model}\n"
         self.data += f"\nMessages: {event}\n"
         self.data += f"\n{prompt}\n{summary}\n"
+        self.data += f"\nCost: {cost:.4f}\n"  # Update total cost with the cost of the current API call
 
     def save_to_file(self, model, extension="txt"):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -102,6 +104,7 @@ def get_user_choice(alert_options, debug, model, session, first_choice=True):
                 hint_prompt += f"{i}. {option.get('kibana.alert.rule.name')}, Severity: {option.get('kibana.alert.severity')}, Description: {option.get('kibana.alert.reason')}\n"
             hint = call_openai_api(hint_prompt, "", debug, model, session)
             cost = string_cost(hint_prompt, model)
+            session.total_cost += cost
             print(f"Hint: {hint}")
             print(f"\nTotal estimated cost for hint API call: ${cost:.4f}")
             continue
@@ -122,7 +125,7 @@ def get_user_choice(alert_options, debug, model, session, first_choice=True):
                             print("The first selection screen is always free. There is no cost associated with it.")
                             continue
                         chosen_alert = alert_options[user_choice - 1]
-                        estimate_prompt, cost = process_prompts(chosen_alert, debug, model, session)
+                        estimate_prompt, cost = process_prompts(chosen_alert, model, session, debug=True, print_output=False)
                         cost = string_cost(estimate_prompt, model)
                     else:
                         raise ValueError
@@ -168,66 +171,74 @@ def string_cost(string, model):
     return cost
 
 def call_openai_api(prompt, event, debug, model, session):
+    input_string = f"{prompt}\n{event}"
+    cost = string_cost(input_string, model)
+
     if debug:
         print("OpenAI API request:")
         print(f"Model: {model}")
-        print(f"Messages: {prompt}\n{event}")
+        print(f"Messages: {input_string}")
         
         # Update session with input and output (for debug mode)
         debug_summary = "Debug mode: Skipping API call"
-        session.add_input_output(model, prompt, event, debug_summary)
+        session.add_input_output(model, prompt, event, debug_summary, cost)
 
         return debug_summary
 
     completion = openai.ChatCompletion.create(
         model=model,
-        messages=[{"role": "user", "content": f"{prompt}\n{event}"}]
+        messages=[{"role": "user", "content": input_string}]
     )
 
     summary = completion['choices'][0]['message']["content"]
 
     # Update session with input and output
-    session.add_input_output(model, prompt, event, summary)
+    session.add_input_output(model, prompt, event, summary, cost)
 
     return summary
 
-def dummy_call_openai_api(prompt, event, model, session):
-    print("Dummy OpenAI API request:")
-    print(f"Model: {model}")
-    print(f"Messages: {prompt}\n{event}")
+def dummy_call_openai_api(prompt, event, model, session, debug, print_output):
+    input_string = f"{prompt}\n{event}"
+    cost = string_cost(input_string, model)
+
+    if debug and print_output:
+        print("Dummy OpenAI API request:")
+        print(f"Model: {model}")
+        print(f"Messages: {input_string}")
 
     # Update session with input and output (for debug mode)
     debug_summary = "Debug mode: Skipping API call"
-    session.add_input_output(model, prompt, event, debug_summary)
+    session.add_input_output(model, prompt, event, debug_summary, cost)
 
     return debug_summary
 
-def process_prompts(chosen_filtered_alert, debug, model, session):
+def process_prompts(chosen_filtered_alert, model, session, debug, print_output=True):
     
     prompts = [
     "Thinking step by step create an investigation and remediation for the alert:",
     "Thinking step by step create and justify Kibana searches to investigate this incident:"
     ]
 
-    total_cost = 0
+    e_total_cost = 0
 
     for prompt in prompts:
         if debug:
-            summary = dummy_call_openai_api(prompt, chosen_filtered_alert, model, session)
+            summary = dummy_call_openai_api(prompt, chosen_filtered_alert, model, session, debug, print_output)
         else:
             summary = call_openai_api(prompt, chosen_filtered_alert, debug, model, session)
         input_string = f"{prompt}\n{chosen_filtered_alert}"
         cost = string_cost(input_string, model)
-        total_cost += cost
-        print(f"\n{prompt}\n")
+        e_total_cost += cost
+        if print_output:
+            print(f"\n{prompt}\n")
 
-        # Use rich to render the summary with Markdown formatting
-        rich_summary = Markdown(summary)
-        rprint(rich_summary)
-    
-    print(f"\nTotal estimated cost for all API calls: ${total_cost:.4f}")
+            # Use rich to render the summary with Markdown formatting
+            rich_summary = Markdown(summary)
+            rprint(rich_summary)
+    session.total_cost += e_total_cost
+    print(f"\nTotal estimated cost for these API calls: ${e_total_cost:.4f}")
 
-    return input_string, total_cost
+    return input_string, e_total_cost
 
 def main():
     args = parse_arguments()
@@ -319,6 +330,7 @@ def main():
 
     if args.debug:
         print("Status code:", response.status_code)
+        print("Connecting to: ", es_url)
 
     alert_options = display_alert_options(unique_alerts, fields)
     chosen_alert = get_user_choice(alert_options, args.debug, model, session, first_choice=True)
@@ -364,7 +376,8 @@ def main():
     filtered_alert_options = display_filtered_alerts(new_alerts, chosen_uuid, fields)
     chosen_filtered_alert = get_user_choice(filtered_alert_options, args.debug, model, session, first_choice=False)
 
-    process_prompts(chosen_filtered_alert, args.debug, model, session)
+    process_prompts(chosen_filtered_alert, model, session, args.debug)
+    print(f"\nTotal estimated cost for all API calls: ${session.total_cost:.4f}")
 
     if args.save:
         output_file = session.save_to_file(model)  # Save session data to a file
