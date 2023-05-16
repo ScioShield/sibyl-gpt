@@ -78,7 +78,7 @@ python3 sibyl-gpt.py
 
 - `--size`: Specify the number of returned results (the unique_alerts search is separate), defaults to 100.
 
-- `--save`: Save the OpenAI output to a file (doesn't work for hints).
+- `--save`: Save the OpenAI output to a file.
 
 ## Improvements and future work
 
