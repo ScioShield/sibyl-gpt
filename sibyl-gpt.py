@@ -173,7 +173,7 @@ def string_cost(string, model):
 def call_openai_api(prompt, event, debug, model, session):
     input_string = f"{prompt}\n{event}"
     cost = string_cost(input_string, model)
-
+    session.total_cost += cost
     if debug:
         print("OpenAI API request:")
         print(f"Model: {model}")
@@ -235,7 +235,7 @@ def process_prompts(chosen_filtered_alert, model, session, debug, print_output=T
             # Use rich to render the summary with Markdown formatting
             rich_summary = Markdown(summary)
             rprint(rich_summary)
-    session.total_cost += e_total_cost
+    
     print(f"\nTotal estimated cost for these API calls: ${e_total_cost:.4f}")
 
     return input_string, e_total_cost
