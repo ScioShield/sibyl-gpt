@@ -200,7 +200,7 @@ def call_openai_api(prompt, event, debug, model, session):
 def dummy_call_openai_api(prompt, event, model, session, debug, print_output):
     input_string = f"{prompt}\n{event}"
     cost = string_cost(input_string, model)
-
+    session.total_cost += cost
     if debug and print_output:
         print("Dummy OpenAI API request:")
         print(f"Model: {model}")
