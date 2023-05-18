@@ -104,7 +104,6 @@ def get_user_choice(alert_options, debug, model, session, first_choice=True):
                 hint_prompt += f"{i}. {option.get('kibana.alert.rule.name')}, Severity: {option.get('kibana.alert.severity')}, Description: {option.get('kibana.alert.reason')}\n"
             hint = call_openai_api(hint_prompt, "", debug, model, session)
             cost = string_cost(hint_prompt, model)
-            session.total_cost += cost
             print(f"Hint: {hint}")
             print(f"\nTotal estimated cost for hint API call: ${cost:.4f}")
             continue
