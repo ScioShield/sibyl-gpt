@@ -84,7 +84,7 @@ def display_alert_options(unique_alerts, fields):
             top_alert = top_alert[0]
             event = extract_fields(top_alert["_source"], fields)
             alert_options.append(event)
-            print(f"[{index + 1}] {event.get('kibana.alert.rule.name')}, Severity: {event.get('kibana.alert.severity')}")
+            rprint(f"[{index + 1}] {event.get('kibana.alert.rule.name')}, Severity: {event.get('kibana.alert.severity')}")
 
     return alert_options
 
@@ -150,7 +150,7 @@ def display_filtered_alerts(alerts, chosen_uuid, fields):
 
         if event.get("kibana.alert.rule.rule_id") == chosen_uuid:
             filtered_alert_options.append(event)
-            print(f"[{index + 1}] {event.get('kibana.alert.rule.name')}, Severity: {event.get('kibana.alert.severity')}, Description: {event.get('kibana.alert.reason')}")
+            rprint(f"[{index + 1}] {event.get('kibana.alert.rule.name')}, Severity: {event.get('kibana.alert.severity')}, Description: {event.get('kibana.alert.reason')}")
 
     return filtered_alert_options
 
